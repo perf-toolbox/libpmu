@@ -1,4 +1,5 @@
 mod backends;
+mod events;
 
 fn create_backend(kind: backends::BackendKind) -> Box<dyn backends::Backend> {
     match kind {
@@ -10,6 +11,32 @@ fn create_default_backend() -> Box<dyn backends::Backend> {
     return create_backend(backends::BackendKind::Perf);
 }
 
+pub fn list_events_for_backend(kind: backends::BackendKind) -> Vec<SystemCounter> {
+    let mut events = backends::get_software_events(kind);
+
+    let hw_events = events::get_hardware_events();
+    events.extend(hw_events);
+
+    return events;
+}
+
+pub fn list_events() -> Vec<SystemCounter> {
+    return list_events_for_backend(backends::BackendKind::Perf);
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SystemCounterKind {
+    Software,
+    Hardware,
+}
+
+#[derive(Debug, Clone)]
+pub struct SystemCounter {
+    pub kind: SystemCounterKind,
+    pub(crate) name: &'static str,
+    pub(crate) encoding: u64,
+}
+
 #[derive(Debug, Clone)]
 pub enum CounterKind {
     Cycles,
@@ -17,7 +44,7 @@ pub enum CounterKind {
     CacheMisses,
     Branches,
     BranchMisses,
-    Hardware(String),
+    System(SystemCounter),
 }
 
 pub struct Builder {
@@ -108,6 +135,17 @@ impl Iterator for CountersIterator<'_> {
     }
 }
 
+impl ToString for SystemCounter {
+    fn to_string(&self) -> String {
+        let prefix = match self.kind {
+            SystemCounterKind::Software => "SW",
+            SystemCounterKind::Hardware => "HW",
+        };
+
+        return format!("{}:{}", prefix, self.name).into();
+    }
+}
+
 impl ToString for CounterKind {
     fn to_string(&self) -> String {
         match self {
@@ -115,7 +153,16 @@ impl ToString for CounterKind {
             CounterKind::Instructions => "instructions".into(),
             CounterKind::Branches => "branches".into(),
             CounterKind::BranchMisses => "branch_misses".into(),
+            CounterKind::System(counter) => counter.to_string(),
             _ => unimplemented!(),
         }
     }
 }
+
+impl PartialEq for SystemCounter {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind && self.name == other.name
+    }
+}
+
+impl Eq for SystemCounter {}

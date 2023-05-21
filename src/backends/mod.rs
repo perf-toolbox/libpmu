@@ -20,3 +20,11 @@ pub enum BackendKind {
 
 mod perf;
 pub(crate) use perf::PerfBackend;
+
+pub fn get_software_events(backend: BackendKind) -> Vec<crate::SystemCounter> {
+    match backend {
+        BackendKind::Perf => {
+            return perf::get_software_events();
+        }
+    }
+}

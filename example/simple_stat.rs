@@ -15,19 +15,37 @@ fn fib(n: usize) -> usize {
 }
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() != 2 {
+        println!("Usage: simple_stat <n>");
+        return;
+    }
+
+    let n = args[1].parse::<usize>().unwrap();
+
     let mut builder = Builder::new();
     builder.add_counter(CounterKind::Cycles);
     builder.add_counter(CounterKind::Instructions);
     builder.add_counter(CounterKind::Branches);
     builder.add_counter(CounterKind::BranchMisses);
 
+    let events = libpmu::list_events();
+
+    events
+        .first()
+        .and_then(|e| Some(builder.add_counter(CounterKind::System(e.clone()))));
+
+    let uops = events.iter().find(|e| e.to_string() == "HW:RETIRED_UOPS");
+    uops.and_then(|e| Some(builder.add_counter(CounterKind::System(e.clone()))));
+
     let mut counters = builder.build().unwrap();
 
     counters.start();
-    let n = fib(50);
+    let f = fib(n);
     counters.stop();
 
-    println!("Fibonacci for 50 is {}", n);
+    println!("Fibonacci for {} is {}", n, f);
 
     for c in counters.iter() {
         println!("{} is {}", c.kind.to_string(), c.value);

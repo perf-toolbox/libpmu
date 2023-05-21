@@ -1,5 +1,5 @@
 use crate::backends::{Backend, BackendCounters};
-use crate::CounterKind;
+use crate::{CounterKind, SystemCounter, SystemCounterKind};
 use libc::read;
 use perf_event_open_sys as sys;
 
@@ -63,6 +63,16 @@ impl Backend for PerfBackend {
                     attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                     attrs.config = sys::bindings::PERF_COUNT_HW_BRANCH_MISSES as u64;
                 }
+                CounterKind::System(counter) => match counter.kind {
+                    crate::SystemCounterKind::Software => {
+                        attrs.type_ = sys::bindings::PERF_TYPE_SOFTWARE;
+                        attrs.config = counter.encoding;
+                    }
+                    crate::SystemCounterKind::Hardware => {
+                        attrs.type_ = sys::bindings::PERF_TYPE_RAW;
+                        attrs.config = counter.encoding;
+                    }
+                },
                 _ => {
                     unimplemented!();
                 }
@@ -182,4 +192,61 @@ impl BackendCounters for PerfCounters {
 
         return Some(cv);
     }
+}
+
+pub(crate) fn get_software_events() -> Vec<crate::SystemCounter> {
+    let events = vec![
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "cpu_clock",
+            encoding: sys::bindings::PERF_COUNT_SW_CPU_CLOCK as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "task_clock",
+            encoding: sys::bindings::PERF_COUNT_SW_TASK_CLOCK as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "page_faults",
+            encoding: sys::bindings::PERF_COUNT_SW_PAGE_FAULTS as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "context_switches",
+            encoding: sys::bindings::PERF_COUNT_SW_CONTEXT_SWITCHES as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "cpu_migrations",
+            encoding: sys::bindings::PERF_COUNT_SW_CPU_MIGRATIONS as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "page_faults_min",
+            encoding: sys::bindings::PERF_COUNT_SW_PAGE_FAULTS_MIN as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "page_faults_maj",
+            encoding: sys::bindings::PERF_COUNT_SW_PAGE_FAULTS_MAJ as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "alignment_faults",
+            encoding: sys::bindings::PERF_COUNT_SW_ALIGNMENT_FAULTS as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "emulation_faults",
+            encoding: sys::bindings::PERF_COUNT_SW_EMULATION_FAULTS as u64,
+        },
+        SystemCounter {
+            kind: SystemCounterKind::Software,
+            name: "dummy",
+            encoding: sys::bindings::PERF_COUNT_SW_DUMMY as u64,
+        },
+    ];
+
+    return events;
 }
