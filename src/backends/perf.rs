@@ -54,6 +54,14 @@ impl Backend for PerfBackend {
                     attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                     attrs.config = sys::bindings::PERF_COUNT_HW_INSTRUCTIONS as u64;
                 }
+                crate::CounterType::Branches => {
+                    attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
+                    attrs.config = sys::bindings::PERF_COUNT_HW_BRANCH_INSTRUCTIONS as u64;
+                }
+                crate::CounterType::BranchMisses => {
+                    attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
+                    attrs.config = sys::bindings::PERF_COUNT_HW_BRANCH_MISSES as u64;
+                }
                 _ => {
                     unimplemented!();
                 }

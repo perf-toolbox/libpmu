@@ -18,6 +18,8 @@ fn main() {
     let mut builder = Builder::new();
     builder.add_counter(CounterType::Cycles);
     builder.add_counter(CounterType::Instructions);
+    builder.add_counter(CounterType::Branches);
+    builder.add_counter(CounterType::BranchMisses);
 
     let mut counters = builder.build().unwrap();
 

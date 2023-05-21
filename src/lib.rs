@@ -16,6 +16,7 @@ pub enum CounterType {
     Instructions,
     CacheMisses,
     Branches,
+    BranchMisses,
     Hardware(String),
 }
 
@@ -112,6 +113,8 @@ impl ToString for CounterType {
         match self {
             CounterType::Cycles => "cycles".into(),
             CounterType::Instructions => "instructions".into(),
+            CounterType::Branches => "branches".into(),
+            CounterType::BranchMisses => "branch_misses".into(),
             _ => unimplemented!(),
         }
     }
