@@ -1,0 +1,12 @@
+[package]
+name = "libpmu"
+version = "0.1.0"
+edition = "2021"
+
+[[example]]
+name = "simple_stat"
+path = "example/simple_stat.rs"
+
+[dependencies]
+libc = "0.2.144"
+perf-event-open-sys2 = "5.0.3"
