@@ -11,7 +11,7 @@ fn create_default_backend() -> Box<dyn backends::Backend> {
 }
 
 #[derive(Debug, Clone)]
-pub enum CounterType {
+pub enum CounterKind {
     Cycles,
     Instructions,
     CacheMisses,
@@ -23,7 +23,7 @@ pub enum CounterType {
 pub struct Builder {
     backend: Box<dyn backends::Backend>,
     pid: Option<i32>,
-    counters: Vec<CounterType>,
+    counters: Vec<CounterKind>,
     period: u32,
     callback: Option<Box<dyn Fn() -> ()>>,
 }
@@ -38,7 +38,7 @@ pub struct CountersIterator<'a> {
 }
 
 pub struct CounterValue {
-    pub kind: CounterType,
+    pub kind: CounterKind,
     pub value: usize,
 }
 
@@ -70,7 +70,7 @@ impl Builder {
         self.callback = Some(callback);
     }
 
-    pub fn add_counter(&mut self, counter: CounterType) {
+    pub fn add_counter(&mut self, counter: CounterKind) {
         self.counters.push(counter);
     }
 
@@ -108,13 +108,13 @@ impl Iterator for CountersIterator<'_> {
     }
 }
 
-impl ToString for CounterType {
+impl ToString for CounterKind {
     fn to_string(&self) -> String {
         match self {
-            CounterType::Cycles => "cycles".into(),
-            CounterType::Instructions => "instructions".into(),
-            CounterType::Branches => "branches".into(),
-            CounterType::BranchMisses => "branch_misses".into(),
+            CounterKind::Cycles => "cycles".into(),
+            CounterKind::Instructions => "instructions".into(),
+            CounterKind::Branches => "branches".into(),
+            CounterKind::BranchMisses => "branch_misses".into(),
             _ => unimplemented!(),
         }
     }

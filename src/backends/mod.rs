@@ -10,7 +10,7 @@ pub(crate) trait Backend {
         &self,
         pid: Option<i32>,
         period: u32,
-        counters: &[crate::CounterType],
+        counters: &[crate::CounterKind],
     ) -> Result<Box<dyn BackendCounters>, String>;
 }
 

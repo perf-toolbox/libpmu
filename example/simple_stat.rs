@@ -1,6 +1,6 @@
 extern crate libpmu;
 
-use libpmu::{Builder, CounterType};
+use libpmu::{Builder, CounterKind};
 
 fn fib(n: usize) -> usize {
     let mut a = 1;
@@ -16,10 +16,10 @@ fn fib(n: usize) -> usize {
 
 fn main() {
     let mut builder = Builder::new();
-    builder.add_counter(CounterType::Cycles);
-    builder.add_counter(CounterType::Instructions);
-    builder.add_counter(CounterType::Branches);
-    builder.add_counter(CounterType::BranchMisses);
+    builder.add_counter(CounterKind::Cycles);
+    builder.add_counter(CounterKind::Instructions);
+    builder.add_counter(CounterKind::Branches);
+    builder.add_counter(CounterKind::BranchMisses);
 
     let mut counters = builder.build().unwrap();
 

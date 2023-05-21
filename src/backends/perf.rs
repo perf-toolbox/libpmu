@@ -1,4 +1,5 @@
 use crate::backends::{Backend, BackendCounters};
+use crate::CounterKind;
 use libc::read;
 use perf_event_open_sys as sys;
 
@@ -11,7 +12,7 @@ struct RFValues {
 }
 
 struct NativeCounterHandle {
-    pub kind: crate::CounterType,
+    pub kind: CounterKind,
     pub fd: i32,
     pub id: u64,
 }
@@ -32,7 +33,7 @@ impl Backend for PerfBackend {
         &self,
         _pid: Option<i32>,
         _period: u32,
-        counters: &[crate::CounterType],
+        counters: &[CounterKind],
     ) -> Result<Box<dyn BackendCounters>, String> {
         let mut native_handles: Vec<NativeCounterHandle> = vec![];
 
@@ -46,19 +47,19 @@ impl Backend for PerfBackend {
                 sys::bindings::PERF_FORMAT_GROUP as u64 | sys::bindings::PERF_FORMAT_ID as u64;
 
             match c {
-                crate::CounterType::Cycles => {
+                CounterKind::Cycles => {
                     attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                     attrs.config = sys::bindings::PERF_COUNT_HW_CPU_CYCLES as u64;
                 }
-                crate::CounterType::Instructions => {
+                CounterKind::Instructions => {
                     attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                     attrs.config = sys::bindings::PERF_COUNT_HW_INSTRUCTIONS as u64;
                 }
-                crate::CounterType::Branches => {
+                CounterKind::Branches => {
                     attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                     attrs.config = sys::bindings::PERF_COUNT_HW_BRANCH_INSTRUCTIONS as u64;
                 }
-                crate::CounterType::BranchMisses => {
+                CounterKind::BranchMisses => {
                     attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                     attrs.config = sys::bindings::PERF_COUNT_HW_BRANCH_MISSES as u64;
                 }
@@ -167,7 +168,7 @@ impl BackendCounters for PerfCounters {
         };
 
         let mut cv = crate::CounterValue {
-            kind: crate::CounterType::Cycles,
+            kind: CounterKind::Cycles,
             value: slice[id].value as usize,
         };
 
