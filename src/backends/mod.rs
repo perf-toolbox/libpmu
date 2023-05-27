@@ -16,15 +16,25 @@ pub(crate) trait Backend {
 
 pub enum BackendKind {
     Perf,
+    KPerf,
 }
 
+mod kperf;
 mod perf;
+
+#[cfg(target_os = "linux")]
 pub(crate) use perf::PerfBackend;
+
+#[cfg(target_os = "macos")]
+pub(crate) use kperf::KPerfBackend;
 
 pub fn get_software_events(backend: BackendKind) -> Vec<crate::SystemCounter> {
     match backend {
         BackendKind::Perf => {
             return perf::get_software_events();
+        }
+        BackendKind::KPerf => {
+            return kperf::get_software_events();
         }
     }
 }

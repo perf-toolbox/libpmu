@@ -1,33 +1,43 @@
+#[cfg(target_os = "linux")]
 use crate::backends::{Backend, BackendCounters};
-use crate::{CounterKind, SystemCounter, SystemCounterKind};
+#[cfg(target_os = "linux")]
+use crate::CounterKind;
+use crate::{SystemCounter, SystemCounterKind};
+#[cfg(target_os = "linux")]
 use libc::read;
 use perf_event_open_sys as sys;
 
+#[cfg(target_os = "linux")]
 pub(crate) struct PerfBackend {}
 
+#[cfg(target_os = "linux")]
 #[repr(C)]
 struct RFValues {
     value: u64,
     id: u64,
 }
 
+#[cfg(target_os = "linux")]
 struct NativeCounterHandle {
     pub kind: CounterKind,
     pub fd: i32,
     pub id: u64,
 }
 
+#[cfg(target_os = "linux")]
 struct PerfCounters {
     native_handles: Vec<NativeCounterHandle>,
     buffer: Vec<u8>,
 }
 
+#[cfg(target_os = "linux")]
 impl PerfBackend {
     pub fn new() -> PerfBackend {
         return PerfBackend {};
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Backend for PerfBackend {
     fn create_counters(
         &self,
@@ -108,6 +118,7 @@ impl Backend for PerfBackend {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl PerfCounters {
     fn new(native_handles: Vec<NativeCounterHandle>) -> PerfCounters {
         return PerfCounters {
@@ -117,6 +128,7 @@ impl PerfCounters {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl BackendCounters for PerfCounters {
     fn start(&mut self) {
         let res = unsafe {

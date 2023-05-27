@@ -1,14 +1,39 @@
 mod backends;
 mod events;
 
-fn create_backend(kind: backends::BackendKind) -> Box<dyn backends::Backend> {
+fn create_backend(kind: backends::BackendKind) -> Result<Box<dyn backends::Backend>, String> {
     match kind {
-        backends::BackendKind::Perf => return Box::new(backends::PerfBackend::new()),
+        backends::BackendKind::Perf => {
+            cfg_if::cfg_if! {
+                if #[cfg(target_os = "linux")] {
+                   Ok(Box::new(backends::PerfBackend::new()))
+                } else {
+                    Err("Backend not supported for current OS".to_string())
+                }
+            }
+        }
+        backends::BackendKind::KPerf => {
+            cfg_if::cfg_if! {
+                if #[cfg(target_os = "macos")] {
+                   Ok(Box::new(backends::KPerfBackend::new()))
+                } else {
+                    Err("Backend not supported for current OS".to_string())
+                }
+            }
+        }
     }
 }
 
-fn create_default_backend() -> Box<dyn backends::Backend> {
-    return create_backend(backends::BackendKind::Perf);
+fn create_default_backend() -> Result<Box<dyn backends::Backend>, String> {
+    cfg_if::cfg_if! {
+        if #[cfg(target_os = "linux")] {
+            create_backend(backends::BackendKind::Perf)
+        } else if #[cfg(target_os = "macos")] {
+            create_backend(backends::BackendKind::KPerf)
+        } else {
+            Err("Unsupported OS".to_string())
+        }
+    }
 }
 
 pub fn list_events_for_backend(kind: backends::BackendKind) -> Vec<SystemCounter> {
@@ -81,11 +106,11 @@ impl Builder {
     }
 
     pub fn new() -> Builder {
-        return Builder::default(create_default_backend());
+        return Builder::default(create_default_backend().unwrap());
     }
 
-    pub fn new_from_backend(backend: backends::BackendKind) -> Builder {
-        return Builder::default(create_backend(backend));
+    pub fn new_from_backend(backend: backends::BackendKind) -> Result<Builder, String> {
+        return Ok(Builder::default(create_backend(backend)?));
     }
 
     pub fn attach(&mut self, pid: i32) {

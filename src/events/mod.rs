@@ -1,5 +1,6 @@
 use crate::SystemCounter;
 
+#[cfg(target_arch = "x86_64")]
 mod amd_fam17h_zen1;
 
 #[cfg(target_arch = "x86_64")]
@@ -52,7 +53,8 @@ pub fn get_hardware_events() -> Vec<SystemCounter> {
         if #[cfg(target_arch="x86_64")] {
             return get_x86_64_hardware_events();
         } else {
-            unimplemented!()
+            return vec![];
+            // unimplemented!()
         }
     }
 }
