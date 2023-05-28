@@ -1,5 +1,6 @@
 mod backends;
 mod events;
+mod ffi;
 
 fn create_backend(kind: backends::BackendKind) -> Result<Box<dyn backends::Backend>, String> {
     match kind {
@@ -47,6 +48,16 @@ pub fn list_events_for_backend(kind: backends::BackendKind) -> Vec<SystemCounter
 
 pub fn list_events() -> Vec<SystemCounter> {
     return list_events_for_backend(backends::BackendKind::Perf);
+}
+
+pub fn find_event_by_name(name: &str) -> Option<SystemCounter> {
+    for e in list_events() {
+        if e.to_string() == name {
+            return Some(e);
+        }
+    }
+
+    return None;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -97,7 +108,7 @@ pub struct CounterValue {
 impl Builder {
     fn default(backend: Box<dyn backends::Backend>) -> Builder {
         return Builder {
-            backend: backend,
+            backend,
             pid: None,
             counters: vec![],
             period: 0,
