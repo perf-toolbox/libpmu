@@ -1,0 +1,9 @@
+arch:
+  name: "amd_fam17h_zen1"
+  constants: []
+  events:
+    - name: RETIRED_UOPS
+      encoding: "0xc1 as u64"
+    - name: "MISALIGNED_LOADS"
+      encoding: "0x47 as u64"
+

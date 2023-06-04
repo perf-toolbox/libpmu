@@ -1,0 +1,34 @@
+arch:
+  name: "intel_icl"
+  constants:
+    - name: INTEL_X86_INV_BIT
+      value: 23
+    - name: INTEL_X86_CMASK_BIT
+      value: 24
+  events:
+    - name: UOPS_RETIRED.SLOTS
+      encoding: "(0xc2 as u64) | (0x0200 as u64)"
+    - name: UOPS_RETIRED.TOTAL_CYCLES
+      encoding: "(0xc2 as u64) | (0x0200 as u64) | ((1 as u64) << INTEL_X86_INV_BIT) | ((0xa as u64) << INTEL_X86_CMASK_BIT)"
+    - name: UOPS_RETIRED.STALL_CYCLES
+      encoding: "(0xc2 as u64) | (0x0200 as u64) | ((1 as u64) << INTEL_X86_INV_BIT) | ((0x1 as u64) << INTEL_X86_CMASK_BIT)"
+    - name: MEM_INST_RETIRED.ALL_STORES
+      encoding: "(0xd0 as u64) | (0x8200 as u64)"
+    - name: MEM_INST_RETIRED.ALL_LOADS
+      encoding: "(0xd0 as u64) | (0x8100 as u64)"
+    - name: MEM_INST_RETIRED.SPLIT_STORES
+      encoding: "(0xd0 as u64) | (0x4200 as u64)"
+    - name: MEM_INST_RETIRED.SPLIT_LOADS
+      encoding: "(0xd0 as u64) | (0x4100 as u64)"
+    - name: MEM_LOAD_RETIRED.L3_MISS
+      encoding: "(0xd1 as u64) | (0x2000 as u64)"
+      desc: "Retired load instructions missed L3 cache as data sources"
+      precise: true
+    - name: MEM_LOAD_RETIRED.L2_MISS
+      encoding: "(0xd1 as u64) | (0x1000 as u64)"
+      desc: "Retired load instructions missed L2 cache as data sources"
+      precise: true
+    - name: MEM_LOAD_RETIRED.L1_MISS
+      encoding: "(0xd1 as u64) | (0x0800 as u64)"
+      desc: "Retired load instructions missed L2 cache as data sources"
+      precise: true

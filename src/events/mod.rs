@@ -1,9 +1,6 @@
-use crate::SystemCounter;
+use crate::{SystemCounter, SystemCounterKind};
 
-#[cfg(target_arch = "x86_64")]
-mod amd_fam17h_zen1;
-#[cfg(target_arch = "x86_64")]
-mod intel_icl;
+include!(concat!(env!("OUT_DIR"), "/archs.rs"));
 
 #[cfg(target_arch = "x86_64")]
 #[repr(C)]
@@ -56,7 +53,6 @@ pub fn get_hardware_events() -> Vec<SystemCounter> {
             return get_x86_64_hardware_events();
         } else {
             return vec![];
-            // unimplemented!()
         }
     }
 }
