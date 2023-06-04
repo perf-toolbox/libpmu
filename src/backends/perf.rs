@@ -73,6 +73,10 @@ impl Backend for PerfBackend {
                     attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                     attrs.config = sys::bindings::PERF_COUNT_HW_BRANCH_MISSES as u64;
                 }
+                CounterKind::CacheMisses => {
+                    attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
+                    attrs.config = sys::bindings::PERF_COUNT_HW_CACHE_MISSES as u64;
+                }
                 CounterKind::System(counter) => match counter.kind {
                     crate::SystemCounterKind::Software => {
                         attrs.type_ = sys::bindings::PERF_TYPE_SOFTWARE;
