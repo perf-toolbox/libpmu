@@ -36,7 +36,9 @@ fn main() {
         .first()
         .and_then(|e| Some(builder.add_counter(CounterKind::System(e.clone()))));
 
-    let uops = events.iter().find(|e| e.to_string() == "HW:RETIRED_UOPS");
+    let uops = events
+        .iter()
+        .find(|e| e.to_string() == "HW:RETIRED_UOPS" || e.to_string() == "HW:UOPS_RETIRED.SLOTS");
     uops.and_then(|e| Some(builder.add_counter(CounterKind::System(e.clone()))));
 
     let mut counters = builder.build().unwrap();
