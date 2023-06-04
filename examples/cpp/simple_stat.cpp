@@ -8,7 +8,7 @@ size_t fib(size_t n) {
   size_t a = 1;
   size_t b = 1;
 
-  for (int i = 1; i < n; i++) {
+  for (size_t i = 1; i < n; i++) {
     size_t old = a;
     a = b;
     b += old;

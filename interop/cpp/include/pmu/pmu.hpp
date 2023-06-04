@@ -2,6 +2,7 @@
 
 #include "pmu/pmu.h"
 
+#include <cassert>
 #include <memory>
 #include <optional>
 #include <string>
