@@ -11,6 +11,9 @@ path = "examples/rust/simple_stat.rs"
 name = "list_events"
 path = "examples/rust/list_events.rs"
 
+[lib]
+crate-type = ["dylib", "rlib"]
+
 [dependencies]
 cfg-if = "1.0.0"
 dlopen2 = "0.4.1"
