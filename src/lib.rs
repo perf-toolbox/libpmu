@@ -189,6 +189,7 @@ impl ToString for CounterKind {
             CounterKind::Instructions => "instructions".into(),
             CounterKind::Branches => "branches".into(),
             CounterKind::BranchMisses => "branch_misses".into(),
+            CounterKind::CacheMisses => "cache_misses".into(),
             CounterKind::System(counter) => counter.to_string(),
             _ => unimplemented!(),
         }
