@@ -2,6 +2,19 @@ mod backends;
 mod events;
 mod ffi;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SystemCounterKind {
+    Software,
+    Hardware,
+}
+
+#[derive(Debug, Clone)]
+pub struct SystemCounter {
+    pub kind: SystemCounterKind,
+    pub name: &'static str,
+    pub(crate) encoding: u64,
+}
+
 fn create_backend(kind: backends::BackendKind) -> Result<Box<dyn backends::Backend>, String> {
     match kind {
         backends::BackendKind::Perf => {
@@ -58,19 +71,6 @@ pub fn find_event_by_name(name: &str) -> Option<SystemCounter> {
     }
 
     return None;
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SystemCounterKind {
-    Software,
-    Hardware,
-}
-
-#[derive(Debug, Clone)]
-pub struct SystemCounter {
-    pub kind: SystemCounterKind,
-    pub(crate) name: &'static str,
-    pub(crate) encoding: u64,
 }
 
 #[derive(Debug, Clone)]

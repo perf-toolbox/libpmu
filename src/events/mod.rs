@@ -2,6 +2,8 @@ use crate::SystemCounter;
 
 #[cfg(target_arch = "x86_64")]
 mod amd_fam17h_zen1;
+#[cfg(target_arch = "x86_64")]
+mod intel_icl;
 
 #[cfg(target_arch = "x86_64")]
 #[repr(C)]
@@ -41,7 +43,7 @@ fn get_x86_64_hardware_events() -> Vec<SystemCounter> {
     if vendor_info.as_str() == "AuthenticAMD" {
         return amd_fam17h_zen1::get();
     } else if vendor_info.as_str() == "GenuineIntel" {
-        unimplemented!()
+        return intel_icl::get();
     }
 
     println!("{}", vendor_info.as_str());
