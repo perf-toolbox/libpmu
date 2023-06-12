@@ -124,8 +124,12 @@ impl Builder {
         return Ok(Builder::default(create_backend(backend)?));
     }
 
-    pub fn attach(&mut self, pid: i32) {
+    pub fn attach_pid(&mut self, pid: i32) {
         self.pid = Some(pid);
+    }
+
+    pub fn attach(&mut self, child: std::process::Child) {
+        self.pid = Some(child.id() as i32);
     }
 
     pub fn enable_sampling(&mut self, period: u32, callback: Box<dyn Fn() -> ()>) {

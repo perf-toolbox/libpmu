@@ -41,7 +41,7 @@ impl PerfBackend {
 impl Backend for PerfBackend {
     fn create_counters(
         &self,
-        _pid: Option<i32>,
+        pid: Option<i32>,
         _period: u32,
         counters: &[CounterKind],
     ) -> Result<Box<dyn BackendCounters>, String> {
@@ -98,7 +98,7 @@ impl Backend for PerfBackend {
                 native_handles.first().unwrap().fd
             };
 
-            let new_fd = unsafe { sys::perf_event_open(&mut attrs, 0, -1, base_fd, 0) };
+            let new_fd = unsafe { sys::perf_event_open(&mut attrs, pid.unwrap_or(0), -1, base_fd, 0) };
 
             if new_fd < 0 {
                 return Err("Failed to open file descriptor".to_string());
