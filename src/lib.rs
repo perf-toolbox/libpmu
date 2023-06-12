@@ -12,6 +12,7 @@ pub enum SystemCounterKind {
 pub struct SystemCounter {
     pub kind: SystemCounterKind,
     pub name: &'static str,
+    pub desc: &'static str,
     pub(crate) encoding: u64,
 }
 

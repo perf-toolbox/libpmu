@@ -3,7 +3,9 @@ arch:
   constants: []
   events:
     - name: RETIRED_UOPS
+      desc: Number of micro-operations retired
       encoding: "0xc1 as u64"
     - name: "MISALIGNED_LOADS"
+      desc: Number of unaligned memory accesses
       encoding: "0x47 as u64"
 

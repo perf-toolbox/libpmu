@@ -63,13 +63,18 @@ fn main() {
                 for evt in &arch.events {
                     let const_name = evt.name.replace(".", "_");
                     evt_names.push(const_name.clone());
+                    let desc = match &evt.desc {
+                        Some(desc) => &desc,
+                        None => "TBD",
+                    };
                     archs.push_str(&format!(
                         "  const {}: SystemCounter = SystemCounter {{
     kind: SystemCounterKind::Hardware,
     name: \"{}\",
+    desc: \"{}\",
     encoding: {},
   }};\n",
-                        &const_name, &evt.name, &evt.encoding
+                        &const_name, &evt.name, &desc, &evt.encoding
                     ));
                 }
 

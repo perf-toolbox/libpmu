@@ -299,51 +299,61 @@ pub(crate) fn get_software_events() -> Vec<crate::SystemCounter> {
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "cpu_clock",
+            desc: "A high-resolution per-CPU timer",
             encoding: sys::bindings::PERF_COUNT_SW_CPU_CLOCK as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "task_clock",
+            desc: "Clock count specific to the task that is running",
             encoding: sys::bindings::PERF_COUNT_SW_TASK_CLOCK as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "page_faults",
+            desc: "Number of page faults",
             encoding: sys::bindings::PERF_COUNT_SW_PAGE_FAULTS as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "context_switches",
+            desc: "Number of context switches",
             encoding: sys::bindings::PERF_COUNT_SW_CONTEXT_SWITCHES as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "cpu_migrations",
+            desc: "Number of times the process has migrated to a new CPU",
             encoding: sys::bindings::PERF_COUNT_SW_CPU_MIGRATIONS as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "page_faults_min",
+            desc: "Number of minor page faults",
             encoding: sys::bindings::PERF_COUNT_SW_PAGE_FAULTS_MIN as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "page_faults_maj",
+            desc: "Number of major page faults",
             encoding: sys::bindings::PERF_COUNT_SW_PAGE_FAULTS_MAJ as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "alignment_faults",
+            desc: "Number of unaligned memory accesses",
             encoding: sys::bindings::PERF_COUNT_SW_ALIGNMENT_FAULTS as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "emulation_faults",
+            desc: "Number of emulation faults",
             encoding: sys::bindings::PERF_COUNT_SW_EMULATION_FAULTS as u64,
         },
         SystemCounter {
             kind: SystemCounterKind::Software,
             name: "dummy",
+            desc: "A placeholder event",
             encoding: sys::bindings::PERF_COUNT_SW_DUMMY as u64,
         },
     ];
