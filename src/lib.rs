@@ -77,6 +77,7 @@ pub fn find_event_by_name(name: &str) -> Option<SystemCounter> {
 pub enum CounterKind {
     Cycles,
     Instructions,
+    CacheHits,
     CacheMisses,
     Branches,
     BranchMisses,
