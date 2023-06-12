@@ -25,10 +25,15 @@ struct NativeCounterHandle {
 }
 
 #[cfg(target_os = "linux")]
-struct PerfCounters {
+struct PerfCounterGroup {
     native_handles: Vec<NativeCounterHandle>,
-    pid: i32,
     buffer: Vec<u8>,
+}
+
+#[cfg(target_os = "linux")]
+struct PerfCounters {
+    groups: Vec<PerfCounterGroup>,
+    pid: i32,
 }
 
 #[cfg(target_os = "linux")]
@@ -46,16 +51,28 @@ impl Backend for PerfBackend {
         _period: u32,
         counters: &[CounterKind],
     ) -> Result<Box<dyn BackendCounters>, String> {
-        let mut native_handles: Vec<NativeCounterHandle> = vec![];
+        let mut processed = 0;
 
+        let mut groups: Vec<PerfCounterGroup> = vec![];
+        let mut native_handles: Vec<NativeCounterHandle> = vec![];
         for c in counters {
+            // TODO(Alex): for now all events are added together. Instead one should
+            // be able to schedule an entire group of events and use multiplexing for
+            // each of those groups.
+            if (processed > 0) && (processed % 1 == 0) {
+                groups.push(PerfCounterGroup::new(native_handles));
+                native_handles = vec![];
+            }
             let mut attrs = sys::bindings::perf_event_attr::default();
             attrs.size = std::mem::size_of::<sys::bindings::perf_event_attr>() as u32;
             attrs.set_disabled(1);
             attrs.set_exclude_kernel(1);
             attrs.set_exclude_hv(1);
-            attrs.read_format =
-                sys::bindings::PERF_FORMAT_GROUP as u64 | sys::bindings::PERF_FORMAT_ID as u64;
+            attrs.read_format = sys::bindings::PERF_FORMAT_GROUP as u64
+                | sys::bindings::PERF_FORMAT_ID as u64
+                | sys::bindings::PERF_FORMAT_TOTAL_TIME_ENABLED as u64
+                | sys::bindings::PERF_FORMAT_TOTAL_TIME_RUNNING as u64;
+            attrs.set_inherit(1);
 
             match c {
                 CounterKind::Cycles => {
@@ -122,21 +139,30 @@ impl Backend for PerfBackend {
                 fd: new_fd,
                 id: id,
             });
+
+            processed += 1;
         }
 
-        return Ok(Box::new(PerfCounters::new(
-            native_handles,
-            pid.unwrap_or(0),
-        )));
+        if !native_handles.is_empty() {
+            groups.push(PerfCounterGroup::new(native_handles));
+        }
+
+        return Ok(Box::new(PerfCounters::new(groups, pid.unwrap_or(0))));
     }
 }
 
 #[cfg(target_os = "linux")]
 impl PerfCounters {
-    fn new(native_handles: Vec<NativeCounterHandle>, pid: i32) -> PerfCounters {
-        return PerfCounters {
+    fn new(groups: Vec<PerfCounterGroup>, pid: i32) -> PerfCounters {
+        return PerfCounters { groups, pid };
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl PerfCounterGroup {
+    fn new(native_handles: Vec<NativeCounterHandle>) -> PerfCounterGroup {
+        return PerfCounterGroup {
             native_handles,
-            pid,
             buffer: vec![0; 8192],
         };
     }
@@ -145,23 +171,27 @@ impl PerfCounters {
 #[cfg(target_os = "linux")]
 impl BackendCounters for PerfCounters {
     fn start(&mut self) {
-        let res = unsafe {
-            sys::ioctls::RESET(
-                self.native_handles.first().unwrap().fd,
-                sys::bindings::PERF_IOC_FLAG_GROUP,
-            )
-        };
-        if res < 0 {
-            panic!("Failed to reset counters");
+        for g in &self.groups {
+            let res = unsafe {
+                sys::ioctls::RESET(
+                    g.native_handles.first().unwrap().fd,
+                    sys::bindings::PERF_IOC_FLAG_GROUP,
+                )
+            };
+            if res < 0 {
+                panic!("Failed to reset counters");
+            }
         }
-        let res_enable = unsafe {
-            sys::ioctls::ENABLE(
-                self.native_handles.first().unwrap().fd,
-                sys::bindings::PERF_IOC_FLAG_GROUP,
-            )
-        };
-        if res_enable < 0 {
-            panic!("Failed to start profiling");
+        for g in &self.groups {
+            let res_enable = unsafe {
+                sys::ioctls::ENABLE(
+                    g.native_handles.first().unwrap().fd,
+                    sys::bindings::PERF_IOC_FLAG_GROUP,
+                )
+            };
+            if res_enable < 0 {
+                panic!("Failed to start profiling");
+            }
         }
         if self.pid != 0 {
             let res = unsafe {
@@ -178,54 +208,85 @@ impl BackendCounters for PerfCounters {
         }
     }
     fn stop(&mut self) {
-        let res = unsafe {
-            sys::ioctls::DISABLE(
-                self.native_handles.first().unwrap().fd,
-                sys::bindings::PERF_IOC_FLAG_GROUP,
-            )
-        };
-        if res < 0 {
-            panic!("Failed to reset counters");
+        for g in &self.groups {
+            let res = unsafe {
+                sys::ioctls::DISABLE(
+                    g.native_handles.first().unwrap().fd,
+                    sys::bindings::PERF_IOC_FLAG_GROUP,
+                )
+            };
+            if res < 0 {
+                panic!("Failed to reset counters");
+            }
         }
+        for g in &mut self.groups {
+            let res_read = unsafe {
+                read(
+                    g.native_handles.first().unwrap().fd,
+                    g.buffer.as_mut_ptr() as *mut libc::c_void,
+                    8192,
+                )
+            };
 
-        let res_read = unsafe {
-            read(
-                self.native_handles.first().unwrap().fd,
-                self.buffer.as_mut_ptr() as *mut libc::c_void,
-                8192,
-            )
-        };
-
-        if res_read < 0 {
-            panic!("Failed to read output data");
+            if res_read < 0 {
+                panic!("Failed to read output data");
+            }
         }
     }
 
     fn peek(&self, id: usize) -> Option<crate::CounterValue> {
-        // TODO how to unwrap correctly?
-        let nr = unsafe { (self.buffer.as_ptr() as *const u64).as_ref() }.unwrap();
+        let group_id = id / 1;
+        let event_id = 0;
 
-        if id >= *nr as usize {
+        if group_id >= self.groups.len() {
+            return None;
+        }
+
+        // TODO how to unwrap correctly?
+        let nr =
+            *unsafe { (self.groups[group_id].buffer.as_ptr() as *const u64).as_ref() }.unwrap();
+        let time_enabled = *unsafe {
+            (self.groups[group_id].buffer.as_ptr() as *const u64)
+                .offset(1)
+                .as_ref()
+        }
+        .unwrap();
+        let time_running = *unsafe {
+            (self.groups[group_id].buffer.as_ptr() as *const u64)
+                .offset(2)
+                .as_ref()
+        }
+        .unwrap();
+
+        let div = (time_enabled as f32) / (time_running as f32);
+
+        if event_id >= nr as usize {
             return None;
         }
 
         let slice = unsafe {
             std::slice::from_raw_parts(
-                (self.buffer.as_ptr() as *const u64).offset(1) as *const RFValues,
-                *nr as usize,
+                self.groups[group_id]
+                    .buffer
+                    .as_ptr()
+                    .offset((3 * std::mem::size_of::<u64>()) as isize)
+                    as *const RFValues,
+                nr as usize,
             )
         };
 
         let mut cv = crate::CounterValue {
             kind: CounterKind::Cycles,
-            value: slice[id].value as usize,
+            value: (slice[event_id].value as f32 / div) as usize,
         };
 
         // TODO(Alex): use find
-        for c in &self.native_handles {
-            if slice[id].id == c.id {
-                cv.kind = c.kind.clone();
-                break;
+        for g in &self.groups {
+            for c in &g.native_handles {
+                if slice[event_id].id == c.id {
+                    cv.kind = c.kind.clone();
+                    break;
+                }
             }
         }
 

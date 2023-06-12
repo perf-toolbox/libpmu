@@ -29,6 +29,8 @@ fn main() {
     builder.add_counter(CounterKind::Instructions);
     builder.add_counter(CounterKind::Branches);
     builder.add_counter(CounterKind::BranchMisses);
+    builder.add_counter(CounterKind::CacheHits);
+    builder.add_counter(CounterKind::CacheMisses);
 
     let events = libpmu::list_events();
 
