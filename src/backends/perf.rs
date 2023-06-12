@@ -4,7 +4,7 @@ use crate::backends::{Backend, BackendCounters};
 use crate::CounterKind;
 use crate::{SystemCounter, SystemCounterKind};
 #[cfg(target_os = "linux")]
-use libc::read;
+use libc::{ptrace, read};
 use perf_event_open_sys as sys;
 
 #[cfg(target_os = "linux")]
@@ -27,6 +27,7 @@ struct NativeCounterHandle {
 #[cfg(target_os = "linux")]
 struct PerfCounters {
     native_handles: Vec<NativeCounterHandle>,
+    pid: i32,
     buffer: Vec<u8>,
 }
 
@@ -98,7 +99,8 @@ impl Backend for PerfBackend {
                 native_handles.first().unwrap().fd
             };
 
-            let new_fd = unsafe { sys::perf_event_open(&mut attrs, pid.unwrap_or(0), -1, base_fd, 0) };
+            let new_fd =
+                unsafe { sys::perf_event_open(&mut attrs, pid.unwrap_or(0), -1, base_fd, 0) };
 
             if new_fd < 0 {
                 return Err("Failed to open file descriptor".to_string());
@@ -118,15 +120,19 @@ impl Backend for PerfBackend {
             });
         }
 
-        return Ok(Box::new(PerfCounters::new(native_handles)));
+        return Ok(Box::new(PerfCounters::new(
+            native_handles,
+            pid.unwrap_or(0),
+        )));
     }
 }
 
 #[cfg(target_os = "linux")]
 impl PerfCounters {
-    fn new(native_handles: Vec<NativeCounterHandle>) -> PerfCounters {
+    fn new(native_handles: Vec<NativeCounterHandle>, pid: i32) -> PerfCounters {
         return PerfCounters {
             native_handles,
+            pid,
             buffer: vec![0; 8192],
         };
     }
@@ -152,6 +158,19 @@ impl BackendCounters for PerfCounters {
         };
         if res_enable < 0 {
             panic!("Failed to start profiling");
+        }
+        if self.pid != 0 {
+            let res = unsafe {
+                ptrace(
+                    libc::PTRACE_CONT,
+                    self.pid,
+                    std::ptr::null_mut::<libc::c_void>(),
+                    std::ptr::null_mut::<libc::c_void>(),
+                )
+            };
+            if res < 0 {
+                panic!("Failed to continue the process");
+            }
         }
     }
     fn stop(&mut self) {
