@@ -1,8 +1,7 @@
 #[cfg(target_os = "macos")]
 use crate::backends::{Backend, BackendCounters};
 #[cfg(target_os = "macos")]
-use crate::CounterKind;
-use crate::{SystemCounter, SystemCounterKind};
+use crate::{CounterKind, CountersGroup};
 use dlopen2::wrapper::{Container, WrapperApi};
 use libc::*;
 use std::ffi::CStr;
@@ -197,10 +196,12 @@ impl Backend for KPerfBackend {
     fn create_counters(
         &self,
         _pid: Option<i32>,
-        _period: u32,
-        counters: &[CounterKind],
+        groups: &[CountersGroup],
     ) -> Result<Box<dyn BackendCounters>, String> {
-        if counters.len() > MAX_COUNTERS {
+        if groups.len() != 1 {
+            return Err(format!("Only 1 group is supported currently"));
+        }
+        if groups.first().unwrap().counters.len() > MAX_COUNTERS {
             return Err(format!(
                 "Only {} counters are supported right now",
                 MAX_COUNTERS
@@ -243,12 +244,12 @@ impl Backend for KPerfBackend {
 
         let mut native_handles = vec![];
 
-        for c in counters {
+        for c in &groups.first().unwrap().counters {
             native_handles.push(NativeCounterHandle {
-                kind: c.clone(),
+                kind: c.counter.clone(),
                 reg_id: 0,
             });
-            match c {
+            match c.counter {
                 CounterKind::Cycles => {
                     macos_event!(
                         "FIXED_CYCLES",
