@@ -9,8 +9,7 @@ pub(crate) trait Backend {
     fn create_counters(
         &self,
         pid: Option<i32>,
-        period: u32,
-        counters: &[crate::CounterKind],
+        groups: &[crate::CountersGroup],
     ) -> Result<Box<dyn BackendCounters>, String>;
 }
 

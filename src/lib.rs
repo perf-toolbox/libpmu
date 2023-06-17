@@ -85,11 +85,30 @@ pub enum CounterKind {
     System(SystemCounter),
 }
 
+#[derive(Debug, Clone)]
+pub enum SamplingPrecision {
+    None,
+    ConstantSkid,
+    RequestNoSkid,
+    ExactIP,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct StandaloneCounter {
+    pub precision: SamplingPrecision,
+    pub counter: CounterKind,
+}
+
+#[derive(Debug, Clone)]
+pub struct CountersGroup {
+    counters: Vec<StandaloneCounter>,
+}
+
 pub struct Builder {
     backend: Box<dyn backends::Backend>,
     pid: Option<i32>,
-    counters: Vec<CounterKind>,
-    period: u32,
+    groups: Vec<CountersGroup>,
+    period: Option<u32>,
     callback: Option<Box<dyn Fn() -> ()>>,
 }
 
@@ -107,13 +126,39 @@ pub struct CounterValue {
     pub value: usize,
 }
 
+impl CountersGroup {
+    pub fn new() -> CountersGroup {
+        return CountersGroup { counters: vec![] };
+    }
+
+    pub fn add_counter(&mut self, counter: CounterKind) {
+        self.counters.push(StandaloneCounter {
+            precision: SamplingPrecision::None,
+            counter,
+        });
+    }
+
+    pub fn add_counter_precise(&mut self, counter: CounterKind, precision: SamplingPrecision) {
+        self.counters.push(StandaloneCounter { precision, counter });
+    }
+
+    pub fn create_from_counter(counter: CounterKind) -> CountersGroup {
+        return CountersGroup {
+            counters: vec![StandaloneCounter {
+                precision: SamplingPrecision::None,
+                counter,
+            }],
+        };
+    }
+}
+
 impl Builder {
     fn default(backend: Box<dyn backends::Backend>) -> Builder {
         return Builder {
             backend,
             pid: None,
-            counters: vec![],
-            period: 0,
+            groups: vec![],
+            period: None,
             callback: None,
         };
     }
@@ -135,18 +180,17 @@ impl Builder {
     }
 
     pub fn enable_sampling(&mut self, period: u32, callback: Box<dyn Fn() -> ()>) {
-        self.period = period;
+        self.period = Some(period);
         self.callback = Some(callback);
     }
 
     pub fn add_counter(&mut self, counter: CounterKind) {
-        self.counters.push(counter);
+        self.groups
+            .push(CountersGroup::create_from_counter(counter));
     }
 
     pub fn build(&self) -> Result<Counters, String> {
-        let backend_counters =
-            self.backend
-                .create_counters(self.pid, self.period, &self.counters)?;
+        let backend_counters = self.backend.create_counters(self.pid, &self.groups)?;
         return Ok(Counters { backend_counters });
     }
 }
