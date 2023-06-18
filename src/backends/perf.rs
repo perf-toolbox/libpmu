@@ -63,7 +63,7 @@ impl Backend for PerfBackend {
                 attrs.set_disabled(1);
                 // TODO(Alex): figure out if this is a RISC-V platform limitation or a kernel bug
                 cfg_if::cfg_if! {
-                    if #[cfg(target_arch="x86_64")] { 
+                    if #[cfg(target_arch="x86_64")] {
                         attrs.set_exclude_kernel(1);
                         attrs.set_exclude_hv(1);
                     }
@@ -132,7 +132,10 @@ impl Backend for PerfBackend {
                     unsafe { sys::perf_event_open(&mut attrs, pid.unwrap_or(0), -1, base_fd, 0) };
 
                 if new_fd < 0 {
-                    return Err(format!("Failed to open file descriptor for event {}", &single_cntr.counter.to_string()));
+                    return Err(format!(
+                        "Failed to open file descriptor for event {}",
+                        &single_cntr.counter.to_string()
+                    ));
                 }
 
                 let mut id: u64 = 0;
