@@ -61,8 +61,13 @@ impl Backend for PerfBackend {
                 let mut attrs = sys::bindings::perf_event_attr::default();
                 attrs.size = std::mem::size_of::<sys::bindings::perf_event_attr>() as u32;
                 attrs.set_disabled(1);
-                attrs.set_exclude_kernel(1);
-                attrs.set_exclude_hv(1);
+                // TODO(Alex): figure out if this is a RISC-V platform limitation or a kernel bug
+                cfg_if::cfg_if! {
+                    if #[cfg(target_arch="x86_64")] { 
+                        attrs.set_exclude_kernel(1);
+                        attrs.set_exclude_hv(1);
+                    }
+                }
                 attrs.read_format = sys::bindings::PERF_FORMAT_GROUP as u64
                     | sys::bindings::PERF_FORMAT_ID as u64
                     | sys::bindings::PERF_FORMAT_TOTAL_TIME_ENABLED as u64
@@ -127,7 +132,7 @@ impl Backend for PerfBackend {
                     unsafe { sys::perf_event_open(&mut attrs, pid.unwrap_or(0), -1, base_fd, 0) };
 
                 if new_fd < 0 {
-                    return Err("Failed to open file descriptor".to_string());
+                    return Err(format!("Failed to open file descriptor for event {}", &single_cntr.counter.to_string()));
                 }
 
                 let mut id: u64 = 0;
