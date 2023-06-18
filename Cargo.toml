@@ -18,7 +18,7 @@ crate-type = ["dylib", "rlib"]
 cfg-if = "1.0.0"
 dlopen2 = "0.4.1"
 libc = "0.2.144"
-perf-event-open-sys2 = "5.0.3"
+perf-event-open-sys2 = { git = "https://github.com/perf-toolbox/perf-event.git" }
 
 [build-dependencies]
 bindgen = "0.65.1"
