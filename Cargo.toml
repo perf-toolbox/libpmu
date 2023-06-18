@@ -20,6 +20,9 @@ dlopen2 = "0.4.1"
 libc = "0.2.144"
 perf-event-open-sys2 = { git = "https://github.com/perf-toolbox/perf-event.git" }
 
+[target.'cfg(unix)'.dependencies]
+proc_getter = "0.0.3"
+
 [build-dependencies]
 bindgen = "0.65.1"
 serde_yaml = "0.9.21"

@@ -114,20 +114,22 @@ fn get_x86_64_family() -> ProcessorFamily {
 }
 
 #[cfg(target_arch = "riscv64")]
-fn get_x86_64_family() -> ProcessorFamily {
-    let mut marchid: u64;
-    unsafe {
-        asm!(
-            "csrr {}, marchid",
-            out(reg) marchid,
-        );
-    }
+fn get_riscv64_family() -> ProcessorFamily {
+    use proc_getter::cpuinfo::cpuinfo;
 
-    if marchid == 0x8000007 {
-        // TODO(Alex): technically speaking this also includes E7 and S7
-        ProcessorFamily::SiFiveU7
-    } else {
-        ProcessorFamily::Unknonw
+    let info = cpuinfo().expect("/proc/cpuinfo is inaccessible");
+    let marchid = info[0].get("marchid");
+
+    match marchid {
+        Some(marchid) => {
+            if marchid == "0x8000000000000007" {
+                // TODO(Alex): technically speaking this also includes E7 and S7
+                ProcessorFamily::SiFiveU7
+            } else {
+                ProcessorFamily::Unknown
+            }
+        }
+        None => ProcessorFamily::Unknown,
     }
 }
 
