@@ -151,6 +151,7 @@ pub fn get_hardware_events() -> Vec<SystemCounter> {
     match arch {
         ProcessorFamily::AmdZen1 => amd_fam17h_zen1::get(),
         ProcessorFamily::IntelTigerLake => intel_icl::get(),
+        ProcessorFamily::SiFiveU7 => sifive_u7::get(),
         _ => vec![],
     }
 }

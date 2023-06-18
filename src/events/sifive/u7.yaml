@@ -1,0 +1,109 @@
+arch:
+  name: "sifive_u7"
+  constants: []
+  events:
+    - name: "INSTR_COMMIT.EXCEPTION_TAKEN"
+      desc: Exception taken
+      encoding: "(0x0 + 0x1 << 8) as u64"
+    - name: "INSTR_COMMIT.INT_LOAD"
+      desc: Integer load instruction retired
+      encoding: "(0x0 + 0x1 << 9) as u64"
+    - name: "INSTR_COMMIT.INT_STORE"
+      desc: Integer store instruction retired
+      encoding: "(0x0 + 0x1 << 10) as u64"
+    - name: "INSTR_COMMIT.ATOMIC"
+      desc: Atomic memory operation retired
+      encoding: "(0x0 + 0x1 << 11) as u64"
+    - name: "INSTR_COMMIT.SYSTEM"
+      desc: System instruction retired
+      encoding: "(0x0 + 0x1 << 12) as u64"
+    - name: "INSTR_COMMIT.INT_ARITH"
+      desc: Integer arithmetic instruction retired
+      encoding: "(0x0 + 0x1 << 13) as u64"
+    - name: "INSTR_COMMIT.C_BRANCH"
+      desc: Conditional branch retired
+      encoding: "(0x0 + 0x1 << 14) as u64"
+    - name: "INSTR_COMMIT.JAL"
+      desc: JAL instruction retired
+      encoding: "(0x0 + 0x1 << 15) as u64"
+    - name: "INSTR_COMMIT.JALR"
+      desc: JALR instruction retired
+      encoding: "(0x0 + 0x1 << 16) as u64"
+    - name: "INSTR_COMMIT.INT_MUL"
+      desc: Integer multiplication instruction retired
+      encoding: "(0x0 + 0x1 << 17) as u64"
+    - name: "INSTR_COMMIT.INT_DIV"
+      desc: Integer division instruction retired
+      encoding: "(0x0 + 0x1 << 18) as u64"
+    - name: "INSTR_COMMIT.FP_LOAD"
+      desc: Floating-point load instruction retired
+      encoding: "(0x0 + 0x1 << 19) as u64"
+    - name: "INSTR_COMMIT.FP_STORE"
+      desc: Floating-point store instruction retired
+      encoding: "(0x0 + 0x1 << 20) as u64"
+    - name: "INSTR_COMMIT.FP_ADD"
+      desc: Floating-point addition instruction retired
+      encoding: "(0x0 + 0x1 << 21) as u64"
+    - name: "INSTR_COMMIT.FP_MUL"
+      desc: Floating-point multiplication instruction retired
+      encoding: "(0x0 + 0x1 << 22) as u64"
+    - name: "INSTR_COMMIT.FP_FMA"
+      desc: Floating-point fused multiply-add instruction retired
+      encoding: "(0x0 + 0x1 << 23) as u64"
+    - name: "INSTR_COMMIT.FP_DIV"
+      desc: Floating-point division instruction retired
+      encoding: "(0x0 + 0x1 << 24) as u64"
+    - name: "INSTR_COMMIT.FP_OTHER"
+      desc: Other floating-point instruction retired
+      encoding: "(0x0 + 0x1 << 25) as u64"
+    - name: "UARCH.ADDR_GEN_INTERLOCK"
+      desc: Address-generation interlock
+      encoding: "(0x1 + 0x1 << 8) as u64"
+    - name: "UARCH.LONG_LAT_INTERLOCK"
+      desc: Long-latency interlock
+      encoding: "(0x1 + 0x1 << 9) as u64"
+    - name: "UARCH.CSR_READ_INTERLOCK"
+      desc: CSR read interlock
+      encoding: "(0x1 + 0x1 << 10) as u64"
+    - name: "UARCH.ICACHE_BUSY"
+      desc: Instruction cache/ITIM busy 
+      encoding: "(0x1 + 0x1 << 11) as u64"
+    - name: "UARCH.DCACHE_BUSY"
+      desc: Data cache/DTIM busy 
+      encoding: "(0x1 + 0x1 << 12) as u64"
+    - name: "UARCH.BRANCH_DIRECTION_MISPRED"
+      desc: Branch direction misprediction 
+      encoding: "(0x1 + 0x1 << 13) as u64"
+    - name: "UARCH.BRANCH_TARGET_MISPRED"
+      desc: Branch/jump target misprediction 
+      encoding: "(0x1 + 0x1 << 14) as u64"
+    - name: "UARCH.PIPELINE_FLUSH_CSR"
+      desc: Pipeline flush from CSR write 
+      encoding: "(0x1 + 0x1 << 15) as u64"
+    - name: "UARCH.PIPELINE_FLUSH_OTHER"
+      desc: Pipeline flush from other event 
+      encoding: "(0x1 + 0x1 << 16) as u64"
+    - name: "UARCH.INT_MUL_INTERLOCK"
+      desc: Integer multiplication interlock
+      encoding: "(0x1 + 0x1 << 17) as u64"
+    - name: "UARCH.FP_INTERLOCK"
+      desc: Floating-point interlock
+      encoding: "(0x1 + 0x1 << 18) as u64"
+    - name: "MEM.ICACHE_MISS"
+      desc: Instruction cache miss
+      encoding: "(0x2 + 0x1 << 8) as u64"
+    - name: "MEM.DCACHE_MISS"
+      desc: Data cache miss or memory-mapped I/O access
+      encoding: "(0x2 + 0x1 << 9) as u64"
+    - name: "MEM.DCACHE_WB"
+      desc: Data cache write-back 
+      encoding: "(0x2 + 0x1 << 10) as u64"
+    - name: "MEM.ITLB_MISS"
+      desc: Instruction TLB miss 
+      encoding: "(0x2 + 0x1 << 11) as u64"
+    - name: "MEM.DTLB_MISS"
+      desc: Data TLB miss 
+      encoding: "(0x2 + 0x1 << 12) as u64"
+    - name: "MEM.L2TLB_MISS"
+      desc: L2 TLB miss 
+      encoding: "(0x2 + 0x1 << 13) as u64"
