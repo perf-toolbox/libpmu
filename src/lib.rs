@@ -242,7 +242,6 @@ impl ToString for CounterKind {
             CounterKind::CacheHits => "cache_hits".into(),
             CounterKind::CacheMisses => "cache_misses".into(),
             CounterKind::System(counter) => counter.to_string(),
-            _ => unimplemented!(),
         }
     }
 }

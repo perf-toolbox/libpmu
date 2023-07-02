@@ -1,4 +1,4 @@
-use crate::{SystemCounter, SystemCounterKind};
+use crate::SystemCounter;
 
 include!(concat!(env!("OUT_DIR"), "/archs.rs"));
 
