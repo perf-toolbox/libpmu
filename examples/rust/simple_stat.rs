@@ -1,6 +1,6 @@
-extern crate libpmu;
+extern crate pmu;
 
-use libpmu::{Builder, CounterKind};
+use pmu::{Builder, CounterKind};
 
 fn fib(n: usize) -> usize {
     let mut a = 1;
@@ -32,7 +32,7 @@ fn main() {
     builder.add_counter(CounterKind::CacheHits);
     builder.add_counter(CounterKind::CacheMisses);
 
-    let events = libpmu::list_events();
+    let events = pmu::list_events();
 
     events
         .first()
