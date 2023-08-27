@@ -44,26 +44,23 @@ pub extern "C" fn pmu_builder_add_counter(
 
     let builder = unsafe { builder_raw.as_mut() }.unwrap();
 
-    if kind == PMUCounterKind_CYCLES {
+    if kind == PMUCounterKind_PMU_CYCLES {
         builder.builder.add_counter(crate::CounterKind::Cycles);
         return 0;
-    } else if kind == PMUCounterKind_INSTRUCTIONS {
+    } else if kind == PMUCounterKind_PMU_INSTRUCTIONS {
         builder
             .builder
             .add_counter(crate::CounterKind::Instructions);
         return 0;
-    } else if kind == PMUCounterKind_CACHE_MISSES {
-        builder.builder.add_counter(crate::CounterKind::CacheMisses);
-        return 0;
-    } else if kind == PMUCounterKind_BRANCHES {
+    } else if kind == PMUCounterKind_PMU_BRANCHES {
         builder.builder.add_counter(crate::CounterKind::Branches);
         return 0;
-    } else if kind == PMUCounterKind_BRANCH_MISSES {
+    } else if kind == PMUCounterKind_PMU_BRANCH_MISSES {
         builder
             .builder
             .add_counter(crate::CounterKind::BranchMisses);
         return 0;
-    } else if kind == PMUCounterKind_SYSTEM {
+    } else if kind == PMUCounterKind_PMU_SYSTEM {
         if name_raw == std::ptr::null() {
             return 1;
         }
@@ -164,6 +161,71 @@ pub extern "C" fn pmu_counters_peek_name(
             return 1;
         }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn pmu_builder_add_cache_counter(
+    builder_raw: *mut FFIBuilder,
+    clevel: c_int,
+    ckind: c_int,
+    cop: c_int,
+    name_raw: *const c_char,
+) -> c_int {
+    if builder_raw == std::ptr::null_mut() {
+        return 1;
+    }
+
+    let builder = unsafe { builder_raw.as_mut() }.unwrap();
+
+    let level = if clevel == PMUCacheLevelKind_PMU_CACHE_L1 {
+        Some(crate::CacheLevelKind::L1)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_L1D {
+        Some(crate::CacheLevelKind::L1D)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_L1I {
+        Some(crate::CacheLevelKind::L1I)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_L2 {
+        Some(crate::CacheLevelKind::L2)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_L3 {
+        Some(crate::CacheLevelKind::L3)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_LAST {
+        Some(crate::CacheLevelKind::Last)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_DTLB {
+        Some(crate::CacheLevelKind::DTLB)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_ITLB {
+        Some(crate::CacheLevelKind::ITLB)
+    } else if clevel == PMUCacheLevelKind_PMU_CACHE_BPU {
+        Some(crate::CacheLevelKind::BPU)
+    } else {
+        None
+    };
+
+    let kind = if ckind == PMUCacheCounterKind_PMU_CACHE_HIT {
+        Some(crate::CacheCounterKind::Hit)
+    } else if ckind == PMUCacheCounterKind_PMU_CACHE_MISS {
+        Some(crate::CacheCounterKind::Miss)
+    } else {
+        None
+    };
+
+    let op = if cop == PMUCacheOpKind_PMU_CACHE_READ {
+        Some(crate::CacheOpKind::Read)
+    } else if ckind == PMUCacheOpKind_PMU_CACHE_WRITE {
+        Some(crate::CacheOpKind::Write)
+    } else if ckind == PMUCacheOpKind_PMU_CACHE_PREFETCH {
+        Some(crate::CacheOpKind::Prefetch)
+    } else {
+        None
+    };
+
+    if level.is_none() || kind.is_none() || op.is_none() {
+        return 1;
+    }
+
+
+    builder
+        .builder
+        .add_counter(crate::CounterKind::Cache(crate::CacheCounter{kind: kind.unwrap(), level: level.unwrap(), op: op.unwrap()}));
+    return 0;
 }
 
 #[no_mangle]

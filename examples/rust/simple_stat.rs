@@ -1,6 +1,6 @@
 extern crate pmu;
 
-use pmu::{Builder, CounterKind};
+use pmu::{Builder, CounterKind, CacheCounter};
 
 fn fib(n: usize) -> usize {
     let mut a = 1;
@@ -29,8 +29,13 @@ fn main() {
     builder.add_counter(CounterKind::Instructions);
     builder.add_counter(CounterKind::Branches);
     builder.add_counter(CounterKind::BranchMisses);
-    builder.add_counter(CounterKind::CacheHits);
-    builder.add_counter(CounterKind::CacheMisses);
+
+    let l1d_misses = CacheCounter{
+        kind: pmu::CacheCounterKind::Miss,
+        level: pmu::CacheLevelKind::L1D,
+        op: pmu::CacheOpKind::Read,
+    };
+    builder.add_counter(CounterKind::Cache(l1d_misses));
 
     let events = pmu::list_events();
 

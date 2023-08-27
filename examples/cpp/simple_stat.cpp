@@ -25,6 +25,9 @@ int main(int argc, char *argv[]) {
   builder.add_counter(pmu::CounterKind::Cycles)
       .add_counter(pmu::CounterKind::Instructions)
       .add_counter(pmu::CounterKind::Branches)
+      .add_counter(pmu::CacheCounter{pmu::CacheLevelKind::L1D,
+                                     pmu::CacheCounterKind::Miss,
+                                     pmu::CacheOpKind::Read})
       .add_counter(pmu::CounterKind::BranchMisses);
 
   auto counters = builder.build();
