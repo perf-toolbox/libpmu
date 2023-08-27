@@ -10,14 +10,43 @@
 
 namespace pmu {
 enum class CounterKind {
-  Cycles = CYCLES,
-  Instructions = INSTRUCTIONS,
-  CacheMisses = CACHE_MISSES,
-  Branches = BRANCHES,
-  BranchMisses = BRANCH_MISSES,
+  Cycles = PMU_CYCLES,
+  Instructions = PMU_INSTRUCTIONS,
+  Branches = PMU_BRANCHES,
+  BranchMisses = PMU_BRANCH_MISSES,
 };
 
-using CounterKindAdvanced = std::variant<CounterKind, std::string>;
+enum class CacheLevelKind {
+  L1 = PMU_CACHE_L1,
+  L1D = PMU_CACHE_L1D,
+  L1I = PMU_CACHE_L1I,
+  L2 = PMU_CACHE_L2,
+  L3 = PMU_CACHE_L3,
+  Last = PMU_CACHE_LAST,
+  dTLB = PMU_CACHE_DTLB,
+  iTLB = PMU_CACHE_ITLB,
+  BPU = PMU_CACHE_BPU,
+};
+
+enum class CacheCounterKind {
+  Hit = PMU_CACHE_HIT,
+  Miss = PMU_CACHE_MISS,
+};
+
+enum class CacheOpKind {
+  Read = PMU_CACHE_READ,
+  Write = PMU_CACHE_WRITE,
+  Prefetch = PMU_CACHE_PREFETCH,
+};
+
+struct CacheCounter {
+  CacheLevelKind level;
+  CacheCounterKind kind;
+  CacheOpKind op;
+};
+
+using CounterKindAdvanced =
+    std::variant<CounterKind, CacheCounter, std::string>;
 
 class Builder;
 class Counters;
@@ -125,8 +154,14 @@ public:
       pmu_builder_add_counter(
           mHandle, static_cast<PMUCounterKind>(std::get<CounterKind>(kind)),
           nullptr);
+    } else if (std::holds_alternative<CacheCounter>(kind)) {
+      auto cacheCounter = std::get<CacheCounter>(kind);
+      pmu_builder_add_cache_counter(
+          mHandle, static_cast<PMUCacheLevelKind>(cacheCounter.level),
+          static_cast<PMUCacheCounterKind>(cacheCounter.kind),
+          static_cast<PMUCacheOpKind>(cacheCounter.op));
     } else {
-      pmu_builder_add_counter(mHandle, SYSTEM,
+      pmu_builder_add_counter(mHandle, PMU_SYSTEM,
                               std::get<std::string>(kind).data());
     }
 

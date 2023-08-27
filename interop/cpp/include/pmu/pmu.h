@@ -15,8 +15,12 @@ struct PMUCountersHandle;
 
 struct PMUBuilderHandle *pmu_builder_create();
 void pmu_builder_release(struct PMUBuilderHandle *);
+/// Add a standard or a system counter
 int pmu_builder_add_counter(struct PMUBuilderHandle *, PMUCounterKind,
                             const char *);
+/// Add HW cache counter
+int pmu_builder_add_cache_counter(struct PMUBuilderHandle *, PMUCacheLevelKind,
+                                  PMUCacheCounterKind, PMUCacheOpKind);
 struct PMUCountersHandle *pmu_builder_build(struct PMUBuilderHandle *);
 int pmu_counters_start(struct PMUCountersHandle *);
 int pmu_counters_stop(struct PMUCountersHandle *);

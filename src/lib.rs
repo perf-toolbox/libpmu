@@ -74,12 +74,44 @@ pub fn find_event_by_name(name: &str) -> Option<SystemCounter> {
     return None;
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum CacheLevelKind {
+    L1,
+    L1I,
+    L1D,
+    L2,
+    L3,
+    Last,
+    DTLB,
+    ITLB,
+    BPU,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum CacheCounterKind {
+    Hit,
+    Miss,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum CacheOpKind {
+    Read,
+    Write,
+    Prefetch,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct CacheCounter {
+    pub kind: CacheCounterKind,
+    pub level: CacheLevelKind,
+    pub op: CacheOpKind,
+}
+
 #[derive(Debug, Clone)]
 pub enum CounterKind {
     Cycles,
     Instructions,
-    CacheHits,
-    CacheMisses,
+    Cache(CacheCounter),
     Branches,
     BranchMisses,
     System(SystemCounter),
@@ -239,10 +271,50 @@ impl ToString for CounterKind {
             CounterKind::Instructions => "instructions".into(),
             CounterKind::Branches => "branches".into(),
             CounterKind::BranchMisses => "branch_misses".into(),
-            CounterKind::CacheHits => "cache_hits".into(),
-            CounterKind::CacheMisses => "cache_misses".into(),
+            CounterKind::Cache(cache) => "cache".into(),
             CounterKind::System(counter) => counter.to_string(),
         }
+    }
+}
+
+impl ToString for CacheLevelKind {
+    fn to_string(&self) -> String {
+        match self {
+            CacheLevelKind::L1 => "l1".into(),
+            CacheLevelKind::L1I => "l1i".into(),
+            CacheLevelKind::L1D => "l1d".into(),
+            CacheLevelKind::L2 => "l2".into(),
+            CacheLevelKind::L3 => "l3".into(),
+            CacheLevelKind::Last => "last".into(),
+            CacheLevelKind::DTLB => "dTLB".into(),
+            CacheLevelKind::ITLB => "iTLB".into(),
+            CacheLevelKind::BPU => "BPU".into(),
+        }
+    }
+}
+
+impl ToString for CacheCounterKind {
+    fn to_string(&self) -> String {
+        match self {
+            CacheCounterKind::Hit => "hit".into(),
+            CacheCounterKind::Miss => "miss".into(),
+        }
+    }
+}
+
+impl ToString for CacheOpKind {
+    fn to_string(&self) -> String {
+        match self {
+            CacheOpKind::Read => "read".into(),
+            CacheOpKind::Write => "write".into(),
+            CacheOpKind::Prefetch => "prefetch".into(),
+        }
+    }
+}
+
+impl ToString for CacheCounter {
+    fn to_string(&self) -> String {
+        return format!("cache_{}_{}_{}", self.level.to_string(), self.op.to_string(), self.kind.to_string());
     }
 }
 

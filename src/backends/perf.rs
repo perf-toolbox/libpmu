@@ -2,7 +2,7 @@
 use crate::backends::{Backend, BackendCounters};
 #[cfg(target_os = "linux")]
 use crate::{CounterKind, CountersGroup};
-use crate::{SystemCounter, SystemCounterKind};
+use crate::{SystemCounter, SystemCounterKind, CacheCounterKind, CacheOpKind, CacheLevelKind};
 #[cfg(target_os = "linux")]
 use libc::{ptrace, read};
 use perf_event_open_sys as sys;
@@ -99,12 +99,25 @@ impl Backend for PerfBackend {
                         attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
                         attrs.config = sys::bindings::PERF_COUNT_HW_BRANCH_MISSES as u64;
                     }
-                    CounterKind::CacheHits => {
-                        attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
-                        attrs.config = sys::bindings::PERF_COUNT_HW_CACHE_REFERENCES as u64;
-                    }
-                    CounterKind::CacheMisses => {
-                        attrs.type_ = sys::bindings::PERF_TYPE_HARDWARE;
+                    CounterKind::Cache(cache) => {
+                        attrs.type_ = sys::bindings::PERF_TYPE_HW_CACHE;
+                        let id = match cache.level {
+                            CacheLevelKind::L1I => sys::bindings::PERF_COUNT_HW_CACHE_L1I,
+                            CacheLevelKind::L1D => sys::bindings::PERF_COUNT_HW_CACHE_L1D,
+                            CacheLevelKind::Last => sys::bindings::PERF_COUNT_HW_CACHE_LL,
+                            CacheLevelKind::DTLB => sys::bindings::PERF_COUNT_HW_CACHE_DTLB,
+                            CacheLevelKind::ITLB => sys::bindings::PERF_COUNT_HW_CACHE_ITLB,
+                            _ => unimplemented!(),
+                        };
+                        let op = match cache.op {
+                            CacheOpKind::Read => sys::bindings::PERF_COUNT_HW_CACHE_OP_READ,
+                            CacheOpKind::Write => sys::bindings::PERF_COUNT_HW_CACHE_OP_WRITE,
+                            CacheOpKind::Prefetch => sys::bindings::PERF_COUNT_HW_CACHE_OP_PREFETCH,
+                        };
+                        let result = match cache.kind {
+                            CacheCounterKind::Hit => sys::bindings::PERF_COUNT_HW_CACHE_RESULT_ACCESS,
+                            CacheCounterKind::Miss => sys::bindings::PERF_COUNT_HW_CACHE_RESULT_MISS,
+                        };
                         attrs.config = sys::bindings::PERF_COUNT_HW_CACHE_MISSES as u64;
                     }
                     CounterKind::System(counter) => match counter.kind {
